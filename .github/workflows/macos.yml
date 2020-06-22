@@ -10,12 +10,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: |
+        set +e
         brew update
         brew install cmake
         brew install fftw
         brew install libomp
         brew install open-mpi
         brew install pkg-config
+        set -e
         brew tap openpmd/openpmd
         brew install openpmd-api
     - name: build WarpX

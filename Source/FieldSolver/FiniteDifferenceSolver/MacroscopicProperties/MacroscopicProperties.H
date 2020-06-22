@@ -38,6 +38,11 @@ public:
      amrex::MultiFab& getsigma_mf  () {return (*m_sigma_mf);}
      amrex::MultiFab& getepsilon_mf  () {return (*m_eps_mf);}
      amrex::MultiFab& getmu_mf  () {return (*m_mu_mf);}
+
+     void InitializeMacroMultiFabUsingParser (amrex::MultiFab *macro_mf,
+                                  ParserWrapper<3> *macro_parser, int lev);
+
+#ifdef WARPX_MAG_LLG
      amrex::MultiFab& getmag_Ms_mf () {return (*m_mag_Ms_mf);}
      amrex::MultiFab& getmag_alpha_mf () {return (*m_mag_alpha_mf);}
      amrex::MultiFab& getmag_gamma_mf () {return (*m_mag_gamma_mf);}
@@ -111,6 +116,7 @@ public:
                                  - Mcomp(i, j, k, n); //magnetic constitutive relation
          return H_Maxwell;
      };
+#endif //closes ifdef MAG_LLG
 
 private:
      /** Conductivity, sigma, of the medium */
@@ -119,39 +125,49 @@ private:
      amrex::Real m_epsilon;
      /** Permeability, mu, of the medium */
      amrex::Real m_mu;
+#ifdef WARPX_MAG_LLG // preferred to use this tag multiple times for different variable types to keep formatting consistent
      /** Saturation magnetization, only applies for magnetic materials */
      amrex::Real m_mag_Ms;
      /** Gilbert damping, only applies for magnetic materials */
      amrex::Real m_mag_alpha;
      /** gyromagnetic ratio, only applies for magnetic materials */
      amrex::Real m_mag_gamma;
+#endif
+
      /** Multifab for m_sigma */
      std::unique_ptr<amrex::MultiFab> m_sigma_mf;
      /** Multifab for m_epsilon */
      std::unique_ptr<amrex::MultiFab> m_eps_mf;
      /** Multifab for m_mu */
      std::unique_ptr<amrex::MultiFab> m_mu_mf;
-     /** Multifac for m_mag_Ms */
+#ifdef WARPX_MAG_LLG
+     /** Multifab for m_mag_Ms */
      std::unique_ptr<amrex::MultiFab> m_mag_Ms_mf;
-     /** Multifac for m_mag_alpha */
+     /** Multifab for m_mag_alpha */
      std::unique_ptr<amrex::MultiFab> m_mag_alpha_mf;
-     /** Multifac for m_mag_gamma */
+     /** Multifab for m_mag_gamma */
      std::unique_ptr<amrex::MultiFab> m_mag_gamma_mf;
+#endif
 
      std::string m_sigma_s;
      std::string m_epsilon_s;
      std::string m_mu_s;
+#ifdef WARPX_MAG_LLG
      std::string m_mag_Ms_s;
      std::string m_mag_alpha_s;
      std::string m_mag_gamma_s;
+#endif
 
      /** string for storing parser function */
      std::string m_str_sigma_function;
      std::string m_str_epsilon_function;
      std::string m_str_mu_function;
+#ifdef WARPX_MAG_LLG
      std::string m_str_mag_Ms_function;
      std::string m_str_mag_alpha_function;
      std::string m_str_mag_gamma_function;
+#endif
+
      /** Parser Wrappers */
      // The ParserWrapper struct is constructed to safely use the GpuParser class
      // that can essentially be though of as a raw pointer. The GpuParser does
@@ -161,9 +177,11 @@ private:
      std::unique_ptr<ParserWrapper<3> > m_sigma_parser;
      std::unique_ptr<ParserWrapper<3> > m_epsilon_parser;
      std::unique_ptr<ParserWrapper<3> > m_mu_parser;
+#ifdef WARPX_MAG_LLG
      std::unique_ptr<ParserWrapper<3> > m_mag_Ms_parser;
      std::unique_ptr<ParserWrapper<3> > m_mag_alpha_parser;
      std::unique_ptr<ParserWrapper<3> > m_mag_gamma_parser;
+#endif
 };
 
 struct LaxWendroffAlgo {

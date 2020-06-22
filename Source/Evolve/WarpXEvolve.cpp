@@ -20,10 +20,6 @@
 #include "FieldSolver/SpectralSolver/SpectralSolver.H"
 #endif
 
-#ifdef BL_USE_SENSEI_INSITU
-#   include <AMReX_AmrMeshInSituBridge.H>
-#endif
-
 #include <cmath>
 #include <limits>
 
@@ -37,7 +33,6 @@ WarpX::Evolve (int numsteps)
 
     Real cur_time = t_new[0];
     static int last_plot_file_step = 0;
-    static int last_insitu_step = 0;
 
     if (do_compute_max_step_from_zmax) {
         computeMaxStepBoostAccelerator(geom[0]);
@@ -100,7 +95,11 @@ WarpX::Evolve (int numsteps)
             // Not called at each iteration, so exchange all guard cells
             FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
+            if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
+                FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+            }
+#endif
             UpdateAuxilaryData();
             // on first step, push p by -0.5*dt
             for (int lev = 0; lev <= finest_level; ++lev)
@@ -117,7 +116,11 @@ WarpX::Evolve (int numsteps)
             // E and B are up-to-date inside the domain only
             FillBoundaryE(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
-            FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
+#ifdef WARPX_MAG_LLG
+            if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
+                FillBoundaryM(guard_cells.ng_FieldGather, guard_cells.ng_Extra);
+            }
+#endif
             // E and B: enough guard cells to update Aux or call Field Gather in fp and cp
             // Need to update Aux on lower levels, to interpolate to higher levels.
 #ifndef WARPX_USE_PSATD
@@ -169,9 +172,6 @@ WarpX::Evolve (int numsteps)
 
         cur_time += dt[0];
 
-        bool do_insitu = ((step+1) >= insitu_start) &&
-            (insitu_int > 0) && ((step+1) % insitu_int == 0);
-
         if (do_back_transformed_diagnostics) {
             std::unique_ptr<MultiFab> cell_centered_data = nullptr;
             if (WarpX::do_back_transformed_fields) {
@@ -180,7 +180,7 @@ WarpX::Evolve (int numsteps)
             myBFD->writeLabFrameData(cell_centered_data.get(), *mypc, geom[0], cur_time, dt[0]);
         }
 
-        bool move_j = is_synchronized || do_insitu;
+        bool move_j = is_synchronized;
         // If is_synchronized we need to shift j too so that next step we can evolve E by dt/2.
         // We might need to move j because we are going to make a plotfile.
 
@@ -212,8 +212,7 @@ WarpX::Evolve (int numsteps)
             }
         }
 
-        bool to_sort = (sort_int > 0) && ((step+1) % sort_int == 0);
-        if (to_sort) {
+        if (sort_intervals.contains(step+1)) {
             amrex::Print() << "re-sorting particles \n";
             mypc->SortParticlesByBin(sort_bin_size);
         }
@@ -240,28 +239,6 @@ WarpX::Evolve (int numsteps)
 
         multi_diags->FilterComputePackFlush( step );
 
-        if (do_insitu)
-        {
-            // This is probably overkill, but it's not called often
-            FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            // This is probably overkill, but it's not called often
-            FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-            // This is probably overkill, but it's not called often
-            FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-#ifndef WARPX_USE_PSATD
-            FillBoundaryAux(guard_cells.ng_UpdateAux);
-#endif
-            UpdateAuxilaryData();
-
-            FieldGather();
-
-            last_plot_file_step = step+1;
-            //last_openPMD_step = step+1;
-            last_insitu_step = step+1;
-
-            UpdateInSitu();
-        }
-
         if (cur_time >= stop_time - 1.e-3*dt[0]) {
             max_time_reached = true;
             break;
@@ -273,42 +250,11 @@ WarpX::Evolve (int numsteps)
         // End loop on time steps
     }
 
-    bool do_insitu = (insitu_start >= istep[0]) && (insitu_int > 0) &&
-        (istep[0] > last_insitu_step) && (max_time_reached || istep[0] >= max_step);
-
     multi_diags->FilterComputePackFlush( istep[0], true );
-
-    if (do_insitu)
-    {
-        // This is probably overkill, but it's not called often
-        FillBoundaryE(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-        // This is probably overkill, but it's not called often
-        FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-        // This is probably overkill
-        FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
-#ifndef WARPX_USE_PSATD
-        FillBoundaryAux(guard_cells.ng_UpdateAux);
-#endif
-        UpdateAuxilaryData();
-
-        for (int lev = 0; lev <= finest_level; ++lev) {
-            mypc->FieldGather(lev,
-                              *Efield_aux[lev][0],*Efield_aux[lev][1],
-                              *Efield_aux[lev][2],
-                              *Bfield_aux[lev][0],*Bfield_aux[lev][1],
-                              *Bfield_aux[lev][2]);
-        }
-
-        UpdateInSitu();
-    }
 
     if (do_back_transformed_diagnostics) {
         myBFD->Flush(geom[0]);
     }
-
-#ifdef BL_USE_SENSEI_INSITU
-    insitu_bridge->finalize();
-#endif
 }
 
 /* /brief Perform one PIC iteration, without subcycling
@@ -393,7 +339,6 @@ WarpX::OneStep_nosub (Real cur_time)
     // Electromagnetic solver:
     // Push E and B from {n} to {n+1}
     // (And update guard cells immediately afterwards)
-    // materials are not defined for cylindrical or PSATD
 #ifdef WARPX_USE_PSATD
         if (use_hybrid_QED)
         {
@@ -416,38 +361,31 @@ WarpX::OneStep_nosub (Real cur_time)
         FillBoundaryF(guard_cells.ng_FieldSolverF);
 
         EvolveB(0.5*dt[0]); // We now have B^{n+1/2}
-        // EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+        FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
+
 #ifdef WARPX_MAG_LLG
-        if (WarpX::em_solver_medium == 0) {
-            //vacuum medium
-            EvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+        if (WarpX::em_solver_medium == MediumForEM::Macroscopic) { //evolveM is not applicable to vacuum
+            MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+            FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         } else {
-            //macroscopic medium
-            MacroscopicEvolveM(0.5*dt[0]);
+            amrex::Abort("unsupported em_solver_medium for M field");
         }
 #endif
-        FillBoundaryB(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-        FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-
-        if (WarpX::em_solver_medium == 0) {
+        if (WarpX::em_solver_medium == MediumForEM::Vacuum) {
             // vacuum medium
             EvolveE(dt[0]); // We now have E^{n+1}
-        } else {
+        } else if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
             // macroscopic medium
             MacroscopicEvolveE(dt[0]); // We now have E^{n+1}
+        } else {
+            amrex::Abort(" Medium for EM is unknown \n");
         }
 
         FillBoundaryE(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
         EvolveF(0.5*dt[0], DtType::SecondHalf);
+
         EvolveB(0.5*dt[0]); // We now have B^{n+1}
-        // EvolveM(0.5*dt[0]); // we now have M^{n+1}
-#ifdef WARPX_MAG_LLG
-        if (WarpX::em_solver_medium == 0){
-            EvolveM(0.5*dt[0]); // we now have M^{n+1}
-        } else {
-            MacroscopicEvolveM(0.5*dt[0]);  // we now have M^{n+1}
-        }
-#endif
+
         //why not implementing FillBoundary here? possibly: implemented in if{safe_guard_cells} Line 452
         if (do_pml) {
             FillBoundaryF(guard_cells.ng_alloc_F);
@@ -459,10 +397,20 @@ WarpX::OneStep_nosub (Real cur_time)
         // E and B are up-to-date in the domain, but all guard cells are
         // outdated.
         if ( safe_guard_cells ){
-            FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             FillBoundaryB(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
         }
-#endif
+#ifdef WARPX_MAG_LLG
+        if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
+            MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1}
+            if ( safe_guard_cells ){
+                FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
+            }
+            else {
+                amrex::Abort("unsupported em_solver_medium for M field");
+            }
+        }
+#endif // 
+#endif // end for PSATD
     }
 }
 

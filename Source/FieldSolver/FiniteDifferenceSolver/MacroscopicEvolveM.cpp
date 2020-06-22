@@ -13,6 +13,7 @@ blank
 
 using namespace amrex;
 
+#ifdef WARPX_MAG_LLG
 // update M field over one timestep
 
 void FiniteDifferenceSolver::MacroscopicEvolveM (
@@ -47,7 +48,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
        amrex::Abort("Only yee algorithm is compatible for M updates.");
     }
     } // closes function EvolveM
-
+#endif
+#ifdef WARPX_MAG_LLG
     template<typename T_Algo>
     void FiniteDifferenceSolver::MacroscopicEvolveMCartesian (
         std::array< std::unique_ptr<amrex::MultiFab>, 3 > & Mfield,
@@ -267,3 +269,4 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
             );
         }
     }
+#endif

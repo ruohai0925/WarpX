@@ -7,6 +7,7 @@
 #include "FlushFormats/FlushFormatPlotfile.H"
 #include "FlushFormats/FlushFormatCheckpoint.H"
 #include "FlushFormats/FlushFormatAscent.H"
+#include "FlushFormats/FlushFormatSensei.H"
 #ifdef WARPX_USE_OPENPMD
 #   include "FlushFormats/FlushFormatOpenPMD.H"
 #endif
@@ -141,6 +142,14 @@ Diagnostics::InitBaseData ()
         m_flush_format = new FlushFormatCheckpoint;
     } else if (m_format == "ascent"){
         m_flush_format = new FlushFormatAscent;
+    } else if (m_format == "sensei"){
+#ifdef BL_USE_SENSEI_INSITU
+        m_flush_format = new FlushFormatSensei(
+            dynamic_cast<amrex::AmrMesh*>(const_cast<WarpX*>(&warpx)),
+            m_diag_name);
+#else
+        amrex::Abort("To use SENSEI in situ, compile with USE_SENSEI=TRUE");
+#endif
     } else if (m_format == "openpmd"){
 #ifdef WARPX_USE_OPENPMD
         m_flush_format = new FlushFormatOpenPMD(m_diag_name);

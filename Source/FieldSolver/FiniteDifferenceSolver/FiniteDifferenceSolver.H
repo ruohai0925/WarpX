@@ -52,9 +52,13 @@ class FiniteDifferenceSolver
                        int const rhocomp,
                        amrex::Real const dt );
 
+#ifdef WARPX_MAG_LLG
         void EvolveM ( std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
                        amrex::Real const dt);
+
+#endif
+
 
         void ComputeDivE ( const std::array<std::unique_ptr<amrex::MultiFab>,3>& Efield,
                            amrex::MultiFab& divE );
@@ -77,11 +81,13 @@ class FiniteDifferenceSolver
                             amrex::Real const dt,
                             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
+#ifdef WARPX_MAG_LLG
         void MacroscopicEvolveM ( std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 >& H_biasfield,
                        std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
                        amrex::Real const dt,
                        std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
+#endif
 
         void EvolveBPML ( std::array< amrex::MultiFab*, 3 > Bfield,
                       std::array< amrex::MultiFab*, 3 > const Efield,
@@ -161,11 +167,13 @@ class FiniteDifferenceSolver
             std::unique_ptr<amrex::MultiFab> const& Ffield,
             amrex::Real const dt );
 
+#ifdef WARPX_MAG_LLG
         template< typename T_Algo >
         void EvolveMCartesian (
             std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
             amrex::Real const dt );
+#endif
 
         template< typename T_Algo >
         void EvolveFCartesian (
@@ -188,6 +196,7 @@ class FiniteDifferenceSolver
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties);
 
+#ifdef WARPX_MAG_LLG
         template< typename T_Algo >
         void MacroscopicEvolveMCartesian (
             std::array< std::unique_ptr<amrex::MultiFab>, 3 >& Mfield,
@@ -195,6 +204,7 @@ class FiniteDifferenceSolver
             std::array< std::unique_ptr<amrex::MultiFab>, 3 > const& Bfield,
             amrex::Real const dt,
             std::unique_ptr<MacroscopicProperties> const& macroscopic_properties );
+#endif            
 
         template< typename T_Algo >
         void EvolveBPMLCartesian (
