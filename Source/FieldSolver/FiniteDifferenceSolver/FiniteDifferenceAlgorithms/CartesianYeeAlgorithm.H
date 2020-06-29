@@ -60,23 +60,6 @@ struct CartesianYeeAlgorithm {
         return inv_dx*( F(i,j,k,ncomp) - F(i-1,j,k,ncomp) );
     };
 
-
-#ifdef WARPX_MAG_LLG
-    /**
-     * Perform derivative along x on a nodal grid, from a cell-centered field `F`*/
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    static amrex::Real DownwardMagDx (
-        amrex::Array4<amrex::Real> const& F,
-        amrex::Array4<amrex::Real> const& M,
-        amrex::Real const * const coefs_x, int const n_coefs_x,
-        int const i, int const j, int const k, amrex::Real const mu, int const ncomp=0, int const ncompM = 0 ) {
-
-        amrex::Real const inv_dx = coefs_x[0];
-        amrex::Real const inv_mu = 1.0/mu;
-        return inv_dx*( (F(i,j,k,ncomp) - F(i-1,j,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i-1,j,k,ncompM)) );
-    };
-#endif
-
     /**
      * Perform derivative along y on a cell-centered grid, from a nodal field `F`*/
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -111,28 +94,6 @@ struct CartesianYeeAlgorithm {
 #endif
     };
 
-
-#ifdef WARPX_MAG_LLG
-    /**
-     * Perform derivative along y on a nodal grid, from a cell-centered field `F`*/
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    static amrex::Real DownwardMagDy (
-        amrex::Array4<amrex::Real> const& F,
-        amrex::Array4<amrex::Real> const& M,
-        amrex::Real const * const coefs_y, int const n_coefs_y,
-        int const i, int const j, int const k, amrex::Real const mu, int const ncomp=0, int const ncompM = 1 ) {
-
-        using namespace amrex;
-#if defined WARPX_DIM_3D
-        Real const inv_dy = coefs_y[0];
-        Real const inv_mu = 1.0/mu;
-        return inv_dy*( (F(i,j,k,ncomp) - F(i,j-1,k,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i,j-1,k,ncompM)) );
-#elif (defined WARPX_DIM_XZ)
-        return 0._rt; // 2D Cartesian: derivative along y is 0
-#endif
-    };
-#endif
-
     /**
      * Perform derivative along z on a cell-centered grid, from a nodal field `F`*/
    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -166,28 +127,6 @@ struct CartesianYeeAlgorithm {
         return inv_dz*( F(i,j,k,ncomp) - F(i,j-1,k,ncomp) );
 #endif
     };
-
-
-#ifdef WARPX_MAG_LLG
-    /**
-     * Perform derivative along z on a nodal grid, from a cell-centered field `F`*/
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    static amrex::Real DownwardMagDz (
-        amrex::Array4<amrex::Real> const& F,
-        amrex::Array4<amrex::Real> const& M,
-        amrex::Real const * const coefs_z, int const n_coefs_z,
-        int const i, int const j, int const k, amrex::Real const mu, int const ncomp=0, int const ncompM = 2 ) {
-
-        using namespace amrex;
-        Real const inv_dz = coefs_z[0];
-        Real const inv_mu = 1.0/mu;
-#if defined WARPX_DIM_3D
-        return inv_dz*( (F(i,j,k,ncomp) - F(i,j,k-1,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i,j,k-1,ncompM)));
-#elif (defined WARPX_DIM_XZ)
-        return inv_dz*( (F(i,j,k,ncomp) - F(i,j,k-1,ncomp))*inv_mu - (M(i,j,k,ncompM) - M(i,j,k-1,ncompM)));
-#endif
-    };
-#endif
 
 };
 

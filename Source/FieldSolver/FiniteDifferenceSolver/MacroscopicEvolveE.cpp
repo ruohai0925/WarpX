@@ -175,10 +175,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                                     mu_arr);
 #ifdef WARPX_MAG_LLG
                 Ex(i, j, k) = alpha * Ex(i, j, k) + beta
-                     * ( - T_Algo::DownwardMagDz(By, M_yface, coefs_z, n_coefs_z, i, j, k, mu)
-                         + T_Algo::DownwardMagDy(Bz, M_zface, coefs_y, n_coefs_y, i, j, k, mu));
-#else
-                Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
+                     * ((- T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k, 0)
+                         + T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k, 0))/PhysConst::mu0
+		         - T_Algo::DownwardDz(My, coefs_z, n_coefs_z, i, j, k, 1)
+                         + T_Algo::DownwardDy(Mz, coefs_y, n_coefs_y, i, j, k, 2));
+#else     
+	        Ex(i, j, k) = alpha * Ex(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDz(By, coefs_z, n_coefs_z, i, j, k)
                          + T_Algo::DownwardDy(Bz, coefs_y, n_coefs_y, i, j, k));
 #endif
@@ -193,11 +195,13 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                                     mu_arr);
 
 #ifdef WARPX_MAG_LLG
-                Ey(i, j, k) = alpha * Ey(i, j, k) + beta
-                     * ( - T_Algo::DownwardMagDx(Bz, M_zface, coefs_x, n_coefs_x, i, j, k, mu)
-                         + T_Algo::DownwardMagDz(Bx, M_xface, coefs_z, n_coefs_z, i, j, k, mu));
+		Ey(i, j, k) = alpha * Ey(i, j, k) + beta
+                     * ((- T_Algo::DownwardDx(Bz, coefs_x, n_coefs_x, i, j, k, 0)
+                         + T_Algo::DownwardDz(Bx, coefs_z, n_coefs_z, i, j, k, 0))/PhysConst::mu0
+	                 - T_Algo::DownwardDx(Mz, coefs_x, n_coefs_x, i, j, k, 2)	     ;
+                         + T_Algo::DownwardDz(Mx, coefs_z, n_coefs_z, i, j, k, 0));
 #else
-                Ey(i, j, k) = alpha * Ey(i, j, k) + (beta/mu)
+   		Ey(i, j, k) = alpha * Ey(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDx(Bz, coefs_x, n_coefs_x, i, j, k)
                          + T_Algo::DownwardDz(Bx, coefs_z, n_coefs_z, i, j, k));
 #endif
@@ -212,8 +216,10 @@ void FiniteDifferenceSolver::MacroscopicEvolveECartesian (
                                                     mu_arr);
 #ifdef WARPX_MAG_LLG
                 Ez(i, j, k) = alpha * Ez(i, j, k) + beta
-                     * ( - T_Algo::DownwardMagDy(Bx, M_xface, coefs_y, n_coefs_y, i, j, k, mu)
-                         + T_Algo::DownwardMagDx(By, M_yface, coefs_x, n_coefs_x, i, j, k, mu));
+                     * ((- T_Algo::DownwardDy(Bx, coefs_y, n_coefs_y, i, j, k, 0)
+                         + T_Algo::DownwardDx(By, coefs_x, n_coefs_x, i, j, k, 0))/PhysConst::mu0
+                         - T_Algo::DownwardDy(Mx, coefs_y, n_coefs_y, i, j, k, 0)
+                         + T_Algo::DownwardDx(My, coefs_x, n_coefs_x, i, j, k, 1));
 #else
                 Ez(i, j, k) = alpha * Ez(i, j, k) + (beta/mu)
                      * ( - T_Algo::DownwardDy(Bx, coefs_y, n_coefs_y, i, j, k)
