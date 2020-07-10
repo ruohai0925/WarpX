@@ -252,7 +252,7 @@ WarpX::InitLevelData (int lev, Real /*time*/)
                    E_ext_grid_s.end(),
                    E_ext_grid_s.begin(),
                    ::tolower);
-# ifdef WARPX_MAG_LLG
+#ifdef WARPX_MAG_LLG
     pp.query("M_ext_grid_init_style", M_ext_grid_s); // user-defined initial M
     std::transform(M_ext_grid_s.begin(),
                    M_ext_grid_s.end(),

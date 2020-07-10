@@ -365,9 +365,27 @@ WarpX::OneStep_nosub (Real cur_time)
 
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) { //evolveM is not applicable to vacuum
+ 	    amrex::Real Mx_x = getMfield_fp(0,0).min(0,0);
+	    amrex::Real Mx_y = getMfield_fp(0,0).min(1,0);
+	    amrex::Real Mx_z = getMfield_fp(0,0).min(2,0);
+
+	    amrex::Real My_x = getMfield_fp(0,1).min(0,0);
+	    amrex::Real My_y = getMfield_fp(0,1).min(1,0);
+	    amrex::Real My_z = getMfield_fp(0,1).min(2,0);
+
+	    amrex::Real Mz_x = getMfield_fp(0,2).min(0,0);
+	    amrex::Real Mz_y = getMfield_fp(0,2).min(1,0);
+	    amrex::Real Mz_z = getMfield_fp(0,2).min(2,0);
+
+            std::ofstream ofs1("./Mfield.txt", std::ofstream::app);
+            amrex::Print(ofs1).SetPrecision(16) << cur_time << " " << Mx_x << " " << Mx_y << " " << Mx_z << " " 
+                                                                   << My_x << " " << My_y << " " << My_z << " "
+                                                                   << Mz_x << " " << Mz_y << " " << Mz_z << std::endl;
+            ofs1.close();
+
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1/2}
             FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
-        } else {
+	} else {
             amrex::Abort("unsupported em_solver_medium for M field");
         }
 #endif
