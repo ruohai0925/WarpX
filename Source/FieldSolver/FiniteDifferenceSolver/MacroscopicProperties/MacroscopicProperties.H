@@ -63,6 +63,7 @@ public:
                              + macro_mag_prop(i-iv[0]+1,j-iv[1]+1,k-iv[2]+1)
          ));
      };
+     
      /*  Hy (0,1,0) components (in) to Hx face (1,0,0) (out)
          Hz (0,0,1) components to Hx face (1,0,0)
          Real Hy_xtemp = 0.25*(Hy(i,j,k)+Hy(i,j+1,k)+Hy(i-1,j,k)+Hy(i-1,j+1,k));
@@ -82,7 +83,6 @@ public:
          i,j,k are the spatial indices, n is the component index
          iv_in is the input field index type, iv_out is the target index type
      */
-
      AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
      static amrex::Real face_avg_to_face (int i, int j, int k, int n,
                                            amrex::IntVect iv_in, amrex::IntVect iv_out,

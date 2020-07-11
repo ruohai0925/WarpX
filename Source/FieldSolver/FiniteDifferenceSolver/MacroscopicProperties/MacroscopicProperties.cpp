@@ -143,13 +143,20 @@ MacroscopicProperties::InitData ()
     else if (m_mag_alpha_s == "parse_mag_alpha_function"){
         InitializeMacroMultiFabUsingParser(m_mag_alpha_mf.get(), m_mag_alpha_parser.get(), lev);
     }
+    if (m_mag_alpha_mf->min(0,m_mag_alpha_mf->nGrow()) < 0) {
+        Abort("alpha should be positive, but the user input has negative values");
+    }
 
     // mag_gamma - defined at node
     if (m_mag_gamma_s == "constant") {
         m_mag_gamma_mf->setVal(m_mag_gamma);
+
     }
     else if (m_mag_gamma_s == "parse_mag_gamma_function"){
         InitializeMacroMultiFabUsingParser(m_mag_gamma_mf.get(), m_mag_gamma_parser.get(), lev);
+    }
+    if (m_mag_gamma_mf->max(0,m_mag_gamma_mf->nGrow()) > 0) {
+        Abort("gamma should be negative, but the user input has positive values");
     }
 #endif
 }

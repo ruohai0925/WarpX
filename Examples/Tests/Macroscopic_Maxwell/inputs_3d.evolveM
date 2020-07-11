@@ -39,8 +39,8 @@ macroscopic.mag_alpha_init_style = "parse_mag_alpha_function"
 macroscopic.mag_alpha_function(x,y,z) = "5e-01"
 #macroscopic.mag_alpha = 5e-02 # alpha is unitless, typical values range from 1e-3 ~ 1e-5
 macroscopic.mag_gamma_init_style = "parse_mag_gamma_function"
-macroscopic.mag_gamma_function(x,y,z) = "1.759e11"
-#macroscopic.mag_gamma = 1.759e11 # gyromagnetic ratio is constant for electrons in all materials
+macroscopic.mag_gamma_function(x,y,z) = "-1.759e11"
+#macroscopic.mag_gamma = -1.759e11 # gyromagnetic ratio is NEGATIVE constant for electrons in all materials
 particles.nspecies = 0
 
 #################################
