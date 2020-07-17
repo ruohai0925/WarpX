@@ -377,13 +377,20 @@ WarpX::OneStep_nosub (Real cur_time)
 	    amrex::Real Mz_y = getMfield_fp(0,2).min(1,0);
 	    amrex::Real Mz_z = getMfield_fp(0,2).min(2,0);
 
-            std::ofstream ofs1("./Mfield.txt", std::ofstream::app);
+            std::ofstream ofs1("./Mfield.txt", std::ofstream::trunc);
             amrex::Print(ofs1).SetPrecision(16) << cur_time << " " << Mx_x << " " << Mx_y << " " << Mx_z << " " 
                                                                    << My_x << " " << My_y << " " << My_z << " "
                                                                    << Mz_x << " " << Mz_y << " " << Mz_z << std::endl;
             ofs1.close();
 
+	    if (time_scheme_order==1){
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1/2}
+	    } else if (time_scheme_order==2){
+	    MacroscopicEvolveM_2nd(0.5*dt[0]); // we now have M^{n+1/2}
+	    } else {
+	    amrex::Abort("unsupported time_scheme_order for M field");
+	    }
+		    
             FillBoundaryM(guard_cells.ng_FieldSolver, IntVect::TheZeroVector());
 	} else {
             amrex::Abort("unsupported em_solver_medium for M field");
@@ -419,7 +426,13 @@ WarpX::OneStep_nosub (Real cur_time)
         }
 #ifdef WARPX_MAG_LLG
         if (WarpX::em_solver_medium == MediumForEM::Macroscopic) {
+ 	    if (time_scheme_order==1){
             MacroscopicEvolveM(0.5*dt[0]); // we now have M^{n+1}
+	    } else if (time_scheme_order==2){
+	    MacroscopicEvolveM_2nd(0.5*dt[0]); // we now have M^{n+1}
+	    } else {
+	    amrex::Abort("unsupported time_scheme_order for M field");	    
+	    } 
             if ( safe_guard_cells ){
                 FillBoundaryM(guard_cells.ng_alloc_EB, guard_cells.ng_Extra);
             }

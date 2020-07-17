@@ -126,7 +126,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
                 + dt * Gil_damp * ( M_xface(i, j, k, 0) * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff)
                 - M_xface(i, j, k, 1) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff));
 
-              },
+  	     },
 
             [=] AMREX_GPU_DEVICE (int i, int j, int k){
 

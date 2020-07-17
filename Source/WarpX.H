@@ -375,6 +375,10 @@ public:
     void MacroscopicEvolveM (         amrex::Real dt);
     void MacroscopicEvolveM (int lev, amrex::Real dt);
     void MacroscopicEvolveM (int lev, PatchType patch_type, amrex::Real dt);
+
+    void MacroscopicEvolveM_2nd (         amrex::Real dt);
+    void MacroscopicEvolveM_2nd (int lev, amrex::Real dt);
+    void MacroscopicEvolveM_2nd (int lev, PatchType patch_type, amrex::Real dt);
 #endif
     void FieldGather ();
 
@@ -757,6 +761,7 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > current_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_fp;
+    amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_fp_old;
 #ifdef WARPX_MAG_LLG
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Mfield_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > H_biasfield_fp;
@@ -800,6 +805,9 @@ private:
 
     amrex::Real moving_window_x = std::numeric_limits<amrex::Real>::max();
     amrex::Real current_injection_position = 0;
+
+    // time scheme of M field
+    int time_scheme_order = 1;
 
     // Plasma injection parameters
     int warpx_do_continuous_injection = 0;
