@@ -96,7 +96,6 @@ void FiniteDifferenceSolver::MacroscopicEvolveM (
             Box const& tbx = mfi.tilebox(Bfield[0]->ixType().toIntVect()); /* just define which grid type */
             Box const& tby = mfi.tilebox(Bfield[1]->ixType().toIntVect());
             Box const& tbz = mfi.tilebox(Bfield[2]->ixType().toIntVect());
-amrex::Print() << "tbz " << tbz <<std::endl;
 
             // loop over cells and update fields
             amrex::ParallelFor(tbx, tby, tbz,
@@ -127,16 +126,7 @@ Real Hz_eff = Hz_bias_xface;
               Real Gil_damp = PhysConst::mu0 * mag_gamma_interp
                               * MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr)
                               / MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr);
-if(i==2 && j==2 && k==2) {
-	      amrex::Print() << "    x " <<std::endl;
-	      amrex::Print() << " i " << i << " j " << j << " k " << k <<  std::endl;
-	      amrex::Print() << " mag_gamma_interp " << mag_gamma_interp << std::endl;
-	      amrex::Print() << " PhysConst::mu0 " << PhysConst::mu0 << std::endl;
-	      amrex::Print() << " alpha_interp " <<MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_alpha_arr) << std::endl;
-	      amrex::Print() << " Ms_interp " <<MacroscopicProperties::macro_avg_to_face(i,j,k,amrex::IntVect(1,0,0),mag_Ms_arr) << std::endl;
-	      amrex::Print() << " prefactor1 " << dt * (-PhysConst::mu0 * mag_gamma_interp) << std::endl;
-	      amrex::Print() << " prefactor2 " << dt * Gil_damp << std::endl;
-}
+
               // now you have access to use M_xface(i,j,k,0) M_xface(i,j,k,1), M_xface(i,j,k,2), Hx(i,j,k), Hy, Hz on the RHS of these update lines below
               // x component on x-faces of grid
               M_xface(i, j, k, 0) += dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff)
@@ -154,13 +144,6 @@ if(i==2 && j==2 && k==2) {
                 - M_xface(i, j, k, 1) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff));
 
 if(i==2 && j==2 && k==2) {
-        amrex::Print() << " dt " << dt << std::endl;
-	      amrex::Print() << " 1 " << dt * (-PhysConst::mu0 * mag_gamma_interp) * ( M_xface(i, j, k, 1) * Hz_eff - M_xface(i, j, k, 2) * Hy_eff) << std::endl;
-	      amrex::Print() << " 2 " << dt * Gil_damp * ( M_xface(i, j, k, 1) * (M_xface(i, j, k, 0) * Hy_eff - M_xface(i, j, k, 1) * Hx_eff)
-                - M_xface(i, j, k, 2) * ( M_xface(i, j, k, 2) * Hx_eff - M_xface(i, j, k, 0) * Hz_eff))<< std::endl;
-}
-
-if(i==2 && j==2 && k==2) {
 	      amrex::Print() << "    x " <<std::endl;
 	      amrex::Print() << " i " << i << " j " << j << " k " << k <<  std::endl;
 	      amrex::Print() << " Hx_xface " << Hx_xface << std::endl;
@@ -169,7 +152,7 @@ if(i==2 && j==2 && k==2) {
 	      amrex::Print() << " Hx_bias_xface " << Hx_bias_xface << std::endl;
 	      amrex::Print() << " Hy_bias_xface " << Hy_bias_xface << std::endl;
 	      amrex::Print() << " Hz_bias_xface " << Hz_bias_xface << std::endl;
-        amrex::Print() << " M_xface(i,j,k,0) " << M_xface(i,j,k,0) << std::endl;
+         amrex::Print() << " M_xface(i,j,k,0) " << M_xface(i,j,k,0) << std::endl;
 	      amrex::Print() << " M_xface(i,j,k,1) " << M_xface(i,j,k,1) << std::endl;
 	      amrex::Print() << " M_xface(i,j,k,2) " << M_xface(i,j,k,2) << std::endl;
 	      amrex::Print() << " mag_gamma_interp " << mag_gamma_interp << std::endl;
